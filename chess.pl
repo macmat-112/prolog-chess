@@ -1131,7 +1131,7 @@ check_empty(Board, Row1, Row2, Col1, Col2):-
 	NewCol1 is Col1-1,
 	nth0(NewRow1, Board, NewRow1List),
 	nth0(NewCol1, NewRow1List, '--'),
-	check_empty(Board, NewRow1, Row2, Col1, Col2).
+	check_empty(Board, NewRow1, Row2, NewCol1, Col2).
 
 check_empty(Board, Row1, Row2, Col1, Col2):-
 	Row1<Row2,
@@ -1140,7 +1140,7 @@ check_empty(Board, Row1, Row2, Col1, Col2):-
 	NewCol1 is Col1-1,
 	nth0(NewRow1, Board, NewRow1List),
 	nth0(NewCol1, NewRow1List, '--'),
-	check_empty(Board, NewRow1, Row2, Col1, Col2).
+	check_empty(Board, NewRow1, Row2, NewCol1, Col2).
 
 check_empty(Board, Row1, Row2, Col1, Col2):-
 	Row1>Row2,
@@ -1149,7 +1149,7 @@ check_empty(Board, Row1, Row2, Col1, Col2):-
 	NewCol1 is Col1+1,
 	nth0(NewRow1, Board, NewRow1List),
 	nth0(NewCol1, NewRow1List, '--'),
-	check_empty(Board, NewRow1, Row2, Col1, Col2).
+	check_empty(Board, NewRow1, Row2, NewCol1, Col2).
 
 check_empty(Board, Row1, Row2, Col1, Col2):-
 	Row1<Row2,
@@ -1158,7 +1158,7 @@ check_empty(Board, Row1, Row2, Col1, Col2):-
 	NewCol1 is Col1+1,
 	nth0(NewRow1, Board, NewRow1List),
 	nth0(NewCol1, NewRow1List, '--'),
-	check_empty(Board, NewRow1, Row2, Col1, Col2).
+	check_empty(Board, NewRow1, Row2, NewCol1, Col2).
 
 check_empty(_, Row1, Row2, Col1, Col2):-
 	Row1 is Row2,
