@@ -12,6 +12,11 @@ debug_promotion():-
 	print_board([[wc, sc, gc, hc, kc, gc, sc, --], [pc, pc, pc, pc, pc, pc, pc, pb], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pc, pb, pb, pb, pb, pb, pb, pb], [--, sb, gb, hb, kb, gb, sb, wb]]),
 	turn_w([[wc, sc, gc, hc, kc, gc, sc, --], [pc, pc, pc, pc, pc, pc, pc, pb], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pc, pb, pb, pb, pb, pb, pb, pb], [--, sb, gb, hb, kb, gb, sb, wb]]).
 
+debug_castling():-
+	nl,
+	print_board([[wc, --, --, --, kc, --, --, wc], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [wb, --, --, --, kb, --, --, wb]]),
+	turn_w([[wc, --, --, --, kc, --, --, wc], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [wb, --, --, --, kb, --, --, wb]]).
+
 % -------------
 % Predykaty tur
 % -------------
@@ -148,6 +153,26 @@ decide_piece_w(Board, Row1, Row2, _, Row2List, Col1, Col2, 'wb', PieceTo, Result
 	member(PieceTo, [wc, sc, gc, hc, pc]),
 	check_empty(Board, Row1, Row2-1, Col1, Col2),
 	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	Result is 1.
+
+decide_piece_w(Board, Row1, Row2, _, _, Col1, Col2, 'wb', 'kb', Result, BoardResult):-
+	Row1 =:= 7,
+	Row2 =:= 7,
+	Col1 =:= 7,
+	Col2 =:= 4,
+	check_empty(Board, Row1, Row2, Col1, Col2+1),
+	swap_pieces(Board, Row1, Col1, 7, 5, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 7, 6, BoardResult),
+	Result is 1.
+
+decide_piece_w(Board, Row1, Row2, _, _, Col1, Col2, 'wb', 'kb', Result, BoardResult):-
+	Row1 =:= 7,
+	Row2 =:= 7,
+	Col1 =:= 0,
+	Col2 =:= 4,
+	check_empty(Board, Row1, Row2, Col1, Col2-1),
+	swap_pieces(Board, Row1, Col1, 7, 3, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 7, 2, BoardResult),
 	Result is 1.
 	
 % ---------------------
@@ -476,6 +501,26 @@ decide_piece_w(Board, Row1, Row2, _, Row2List, Col1, Col2, 'kb', PieceTo, Result
 	empty_or_not_w(Board, Row1, Col1, Row2, Col2, Row2List, PieceTo, BoardResult),
 	Result is 1.
 
+decide_piece_w(Board, Row1, Row2, _, _, Col1, Col2, 'kb', 'wb', Result, BoardResult):-
+	Row1 =:= 7,
+	Row2 =:= 7,
+	Col1 =:= 4,
+	Col2 =:= 7,
+	check_empty(Board, Row1, Row2, Col1, Col2-1),
+	swap_pieces(Board, Row1, Col1, 7, 6, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 7, 5, BoardResult),
+	Result is 1.
+
+decide_piece_w(Board, Row1, Row2, _, _, Col1, Col2, 'kb', 'wb', Result, BoardResult):-
+	Row1 =:= 7,
+	Row2 =:= 7,
+	Col1 =:= 4,
+	Col2 =:= 0,
+	check_empty(Board, Row1, Row2, Col1, Col2+1),
+	swap_pieces(Board, Row1, Col1, 7, 2, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 7, 3, BoardResult),
+	Result is 1.
+
 % -----------------------------------
 % Przypadek ogólny - zły ruch białego
 % -----------------------------------
@@ -569,6 +614,26 @@ decide_piece_b(Board, Row1, Row2, _, Row2List, Col1, Col2, 'wc', PieceTo, Result
 	member(PieceTo, [wb, sb, gb, hb, pb]),
 	check_empty(Board, Row1, Row2-1, Col1, Col2),
 	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	Result is 1.
+
+decide_piece_b(Board, Row1, Row2, _, _, Col1, Col2, 'wc', 'kc', Result, BoardResult):-
+	Row1 =:= 0,
+	Row2 =:= 0,
+	Col1 =:= 7,
+	Col2 =:= 4,
+	check_empty(Board, Row1, Row2, Col1, Col2+1),
+	swap_pieces(Board, Row1, Col1, 0, 5, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 0, 6, BoardResult),
+	Result is 1.
+
+decide_piece_b(Board, Row1, Row2, _, _, Col1, Col2, 'wc', 'kc', Result, BoardResult):-
+	Row1 =:= 0,
+	Row2 =:= 0,
+	Col1 =:= 0,
+	Col2 =:= 4,
+	check_empty(Board, Row1, Row2, Col1, Col2-1),
+	swap_pieces(Board, Row1, Col1, 0, 3, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 0, 2, BoardResult),
 	Result is 1.
 
 % ----------------------
@@ -895,6 +960,26 @@ decide_piece_b(Board, Row1, Row2, _, Row2List, Col1, Col2, 'kc', PieceTo, Result
 	Row2 is Row1+1,
 	Col2 is Col1+1,
 	empty_or_not_b(Board, Row1, Col1, Row2, Col2, Row2List, PieceTo, BoardResult),
+	Result is 1.
+
+decide_piece_b(Board, Row1, Row2, _, _, Col1, Col2, 'kc', 'wc', Result, BoardResult):-
+	Row1 =:= 0,
+	Row2 =:= 0,
+	Col1 =:= 4,
+	Col2 =:= 7,
+	check_empty(Board, Row1, Row2, Col1, Col2-1),
+	swap_pieces(Board, Row1, Col1, 0, 6, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 0, 5, BoardResult),
+	Result is 1.
+
+decide_piece_b(Board, Row1, Row2, _, _, Col1, Col2, 'kc', 'wc', Result, BoardResult):-
+	Row1 =:= 0,
+	Row2 =:= 0,
+	Col1 =:= 4,
+	Col2 =:= 0,
+	check_empty(Board, Row1, Row2, Col1, Col2+1),
+	swap_pieces(Board, Row1, Col1, 0, 2, NewBoard),
+	swap_pieces(NewBoard, Row2, Col2, 0, 3, BoardResult),
 	Result is 1.
 
 % ------------------------------------
