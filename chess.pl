@@ -1,16 +1,27 @@
-% todo:
-% back
-% stop
-% roszada
-% promocja
+% ------------------------
+% Predykaty rozpoczynające
+% ------------------------
 
-start_game():-
+start():-
 	nl,
 	print_board([[wc, sc, gc, hc, kc, gc, sc, wc], [pc, pc, pc, pc, pc, pc, pc, pc], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pb, pb, pb, pb, pb, pb, pb, pb], [wb, sb, gb, hb, kb, gb, sb, wb]]),
 	turn_w([[wc, sc, gc, hc, kc, gc, sc, wc], [pc, pc, pc, pc, pc, pc, pc, pc], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pb, pb, pb, pb, pb, pb, pb, pb], [wb, sb, gb, hb, kb, gb, sb, wb]]).
 
-turn_w(Board):- nl, write('Teraz bialy: '), nl, read(A), read(B), read(C), read(D), nl, move_w(Board, A, B, C, D, Result, BoardResult), next_turn(w, Result, Board, BoardResult).
-turn_b(Board):- nl, write('Teraz czarny: '), nl, read(A), read(B), read(C), read(D), nl, move_b(Board, A, B, C, D, Result, BoardResult), next_turn(b, Result, Board, BoardResult).
+debug_promotion():-
+	nl,
+	print_board([[wc, sc, gc, hc, kc, gc, sc, --], [pc, pc, pc, pc, pc, pc, pc, pb], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pc, pb, pb, pb, pb, pb, pb, pb], [--, sb, gb, hb, kb, gb, sb, wb]]),
+	turn_w([[wc, sc, gc, hc, kc, gc, sc, --], [pc, pc, pc, pc, pc, pc, pc, pb], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [--, --, --, --, --, --, --, --], [pc, pb, pb, pb, pb, pb, pb, pb], [--, sb, gb, hb, kb, gb, sb, wb]]).
+
+% -------------
+% Predykaty tur
+% -------------
+
+turn_w(Board):- nl, write('Teraz bialy: '), nl, read(A), read(B), read(C), read(D), nl, move_w(Board, A, B, C, D, Result, BoardResult), next_turn(A, w, Result, Board, BoardResult), go_back(A, w, Board).
+turn_b(Board):- nl, write('Teraz czarny: '), nl, read(A), read(B), read(C), read(D), nl, move_b(Board, A, B, C, D, Result, BoardResult), next_turn(A, b, Result, Board, BoardResult), go_back(A, b, Board).
+
+% -------------------------------------------
+% Możliwości ruchów dla poszczególnych graczy
+% -------------------------------------------
 
 move_w(Board, Row1, Col1, Row2, Col2, Result, BoardResult):-
 	integer(Row1),
@@ -23,11 +34,15 @@ move_w(Board, Row1, Col1, Row2, Col2, Result, BoardResult):-
 	nth0(Col2, Row2List, PieceTo),
 	decide_piece_w(Board, Row1, Row2, Row1List, Row2List, Col1, Col2, PieceFrom, PieceTo, Result, BoardResult).
 
+move_w(_, 'stop', _, _, _, _, _):- abort.
+
+move_w(_, 'back', _, _, _, _, _).
+
 move_w(Board, _, _, _, _, _, BoardResult):-
 	write('Niepoprawne wspolrzedne! [X1, Y1, X2, Y2]'),
 	nl,
 	nl,
-	next_turn(w, 0, Board, BoardResult).
+	next_turn(_, w, 0, Board, BoardResult).
 
 move_b(Board, Row1, Col1, Row2, Col2, Result, BoardResult):-
 	integer(Row1),
@@ -40,11 +55,15 @@ move_b(Board, Row1, Col1, Row2, Col2, Result, BoardResult):-
 	nth0(Col2, Row2List, PieceTo),
 	decide_piece_b(Board, Row1, Row2, Row1List, Row2List, Col1, Col2, PieceFrom, PieceTo, Result, BoardResult).
 
+move_b(_, 'stop', _, _, _, _, _):- abort.
+
+move_b(_, 'back', _, _, _, _, _).
+
 move_b(Board, _, _, _, _, _, BoardResult):-
 	write('Niepoprawne wspolrzedne! [X1, Y1, X2, Y2]'),
 	nl,
 	nl,
-	next_turn(b, 0, Board, BoardResult).
+	next_turn(_, b, 0, Board, BoardResult).
 
 % -------------------
 % Ruchy białego piona
@@ -58,24 +77,27 @@ decide_piece_w(Board, Row1, Row2, Row1List, _, Col1, Col2, 'pb', '--', Result, B
 	swap_pieces(Board, Row1, Col1, Row2, Col2, BoardResult),
 	Result is 1.
 
-decide_piece_w(Board, Row1, Row2, _, _, Col1, Col2, 'pb', '--', Result, BoardResult):-
+decide_piece_w(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pb', '--', Result, BoardResult):-
 	Row2 is Row1-1,
 	Col2 is Col1,
-	swap_pieces(Board, Row1, Col1, Row2, Col2, BoardResult),
+	swap_pieces(Board, Row1, Col1, Row2, Col2, NewBoard),
+	promotion_w(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 decide_piece_w(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pb', PieceTo, Result, BoardResult):-
 	Row2 is Row1-1,
 	Col2 is Col1-1,
 	member(PieceTo, [wc, sc, gc, hc, pc]),
-	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, NewBoard),
+	promotion_w(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 decide_piece_w(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pb', PieceTo, Result, BoardResult):-
 	Row2 is Row1-1,
 	Col2 is Col1+1,
 	member(PieceTo, [wc, sc, gc, hc, pc]),
-	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, NewBoard),
+	promotion_w(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 % ------------------
@@ -476,24 +498,27 @@ decide_piece_b(Board, Row1, Row2, Row1List, _, Col1, Col2, 'pc', '--', Result, B
 	swap_pieces(Board, Row1, Col1, Row2, Col2, BoardResult),
 	Result is 1.
 
-decide_piece_b(Board, Row1, Row2, _, _, Col1, Col2, 'pc', '--', Result, BoardResult):-
+decide_piece_b(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pc', '--', Result, BoardResult):-
 	Row2 is Row1+1,
 	Col2 is Col1,
-	swap_pieces(Board, Row1, Col1, Row2, Col2, BoardResult),
+	swap_pieces(Board, Row1, Col1, Row2, Col2, NewBoard),
+	promotion_b(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 decide_piece_b(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pc', PieceTo, Result, BoardResult):-
 	Row2 is Row1+1,
 	Col2 is Col1-1,
 	member(PieceTo, [wb, sb, gb, hb, pb]),
-	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, NewBoard),
+	promotion_b(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 decide_piece_b(Board, Row1, Row2, _, Row2List, Col1, Col2, 'pc', PieceTo, Result, BoardResult):-
 	Row2 is Row1+1,
 	Col2 is Col1+1,
 	member(PieceTo, [wb, sb, gb, hb, pb]),
-	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, BoardResult),
+	destroy_and_swap(Board, Row1, Col1, Row2, Col2, Row2List, NewBoard),
+	promotion_b(NewBoard, Row2, Row2List, Col2, BoardResult),
 	Result is 1.
 
 % -------------------
@@ -882,6 +907,62 @@ decide_piece_b(_, _, _, _, _, _, _, _, _, Result, _):-
 	nl,
 	Result is 0.
 
+% --------------
+% Promocja piona
+% --------------
+
+promotion_w(Board, Row2, Row2List, Col2, BoardResult):-
+	Row2 =:= 0,
+	nl,
+	write("Promocja!"),
+	nl,
+	write("Wybierz pionka: "),
+	nl,
+	read(Piece),
+	nl,
+	change_pawn_w(Board, Row2, Row2List, Col2, Piece, BoardResult).
+
+promotion_w(Board, _, _, _, BoardResult):- copy_term(Board, BoardResult).
+
+change_pawn_w(Board, Row2, Row2List, Col2, Piece, BoardResult):-
+	member(Piece, [wb, sb, gb, hb]),
+	destroy(Row2List, Col2, _, Piece, NewRow2List),
+	destroy(Board, Row2, _, NewRow2List, BoardResult).
+
+change_pawn_w(Board, Row2, Row2List, Col2, _, BoardResult):-
+	nl,
+	write("Wprowadz poprawny pionek! [wb, sb, gb, hb]"),
+	nl,
+	promotion_w(Board, Row2, Row2List, Col2, BoardResult).
+
+promotion_b(Board, Row2, Row2List, Col2, BoardResult):-
+	Row2 =:= 7,
+	nl,
+	write("Promocja!"),
+	nl,
+	write("Wybierz pionka: "),
+	nl,
+	read(Piece),
+	nl,
+	change_pawn_b(Board, Row2, Row2List, Col2, Piece, BoardResult).
+
+promotion_b(Board, _, _, _, BoardResult):- copy_term(Board, BoardResult).
+
+change_pawn_b(Board, Row2, Row2List, Col2, Piece, BoardResult):-
+	member(Piece, [wc, sc, gc, hc]),
+	destroy(Row2List, Col2, _, Piece, NewRow2List),
+	destroy(Board, Row2, _, NewRow2List, BoardResult).
+
+change_pawn_b(Board, Row2, Row2List, Col2, _, BoardResult):-
+	nl,
+	write("Wprowadz poprawny pionek! [wc, sc, gc, hc]"),
+	nl,
+	promotion_b(Board, Row2, Row2List, Col2, BoardResult).
+
+% --------------------
+% Predykaty pomocnicze
+% --------------------
+
 empty_or_not_w(Board, Row1, Col1, Row2, Col2, _, '--', BoardResult):- swap_pieces(Board, Row1, Col1, Row2, Col2, BoardResult).
 empty_or_not_w(Board, Row1, Col1, Row2, Col2, Row2List, Piece, BoardResult):-
 	member(Piece, [wc, sc, gc, hc, pc]),
@@ -917,6 +998,14 @@ replace_piece(Board, Row, Col, Piece, ResultBoard) :-
 replace_in_row(Row, Col, Piece, ResultRow):-
     nth0(Col, Row, _, Rest),
     nth0(Col, ResultRow, Piece, Rest).
+
+print_board([]).
+
+print_board([H|T]):- write(H), nl, print_board(T).
+
+% --------------------------------------------
+% Sprawdzenie, czy tor ruchu figury jest pusty
+% --------------------------------------------
 
 check_empty(Board, Row1, Row2, Col1, Col2):-
 	Row1 is Row2,
@@ -990,21 +1079,44 @@ check_empty(_, Row1, Row2, Col1, Col2):-
 	Row1 is Row2,
 	Col1 is Col2.
 
-print_board([]).
-print_board([H|T]):- write(H), nl, print_board(T).
+% -------------
+% Następna tura
+% -------------
 
-next_turn(w, 1, _, BoardResult):-
+next_turn(A, w, 1, _, BoardResult):-
+	A \== 'back',
 	print_board(BoardResult),
 	turn_b(BoardResult).
 
-next_turn(w, 0, Board, _):-
+next_turn(A, w, 0, Board, _):-
+	A \== 'back',
 	print_board(Board),
 	turn_w(Board).
 
-next_turn(b, 1, _, BoardResult):-
+next_turn(A, b, 1, _, BoardResult):-
+	A \== 'back',
 	print_board(BoardResult),
 	turn_w(BoardResult).
 
-next_turn(b, 0, Board, _):-
+next_turn(A, b, 0, Board, _):-
+	A \== 'back',
 	print_board(Board),
 	turn_b(Board).
+
+next_turn('back', _, _, _, _).
+
+% ---------------
+% Poprzednia tura
+% ---------------
+
+go_back('back', _, _).
+
+go_back(A, b, Board):-
+	A \== 'back',
+	print_board(Board),
+	turn_b(Board).
+
+go_back(A, w, Board):-
+	A \== 'back',
+	print_board(Board),
+	turn_w(Board).
